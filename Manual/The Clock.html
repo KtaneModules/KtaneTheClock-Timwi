@@ -9,12 +9,17 @@
     <link href="css/normalize.css" rel="stylesheet" type="text/css">
     <link href="css/main.css" rel="stylesheet" type="text/css">
     <style>
+        .wheel-chart {
+            width: 140mm;
+            display: block;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body>
     <div id="ManualContent">
         <div class="section">
-            <div class="page">
+            <div class="page page-bg-06">
                 <div class="page-header">
                     <span class="page-header-doc-title">Keep Talking and Nobody Explodes Mod</span>
                     <span class="page-header-section-title">The Clock</span>
@@ -22,26 +27,104 @@
                 <div class="page-content">
                     <img class="diagram" src="img/Component/The Clock.svg">
                     <h2>On the Subject of The Clock</h2>
-		            <p class="flavour-text">Tick-tock...</p>
-		            <ul>
-		                <li>Use the gears and knobs beneath the hinged panel to adjust the hands on the clock.
-		                <li>Set the clock to the corret time and close the panel to disarm the module.
-		            </ul>
-		            <h3>Step A: Determine Starting Time.</h3>
-		            <p>Beneath the panel at the base of the clock are two gears, and each gear has a knob at its center.  The small and large gears correspond to the hour and minute hands respectively.  Moving a gear directly will advance the corresponding hand according to its ratio.  Moving the knob on top of a gear will advance that gear's corresponding hand by <u>exactly one</u> hour or minute.
-		            <p>Each of the charts on the next page simulate a clock face for the appropriate hand.  Using the features of the clock on the module, determine a straight line that travels through all appropriate categories on the chart without intersecting any others.  The hour or minute that the line lands on will provide the starting time needed to complete the module.
-		            <h3>Step B: Determine Final Time.</h3>
-		            <p>Follow these steps using the starting time determined in Step A.
-		            <ol>
-		                <li>Use the hour hand gear ratio as the tens place and the minute hand gear ratio as the ones place to create a two-digit number.  Add that many minutes.
-		                <li>If the clock face is black and the number of minutes is now between twelve and one, swap the minutes and hours.
-		                <li>If the color of the hour and minute hands does not match that of the numerals, subtract a number of minutes equal to twice the sum of the gear ratios.
-		                <li>If the bomb has registered strikes, multiply the number of strikes by the number of D-Cell batteries on the bomb and subtract that many hours.
-		                <li>If the digital countdown timer has <u>more</u> than seven (7) minutes left, add one hour.  Otherwise, if the bomb has <u>less</u> than three (3) minutes left, subtract one hour.
-		                <li>Set the clock to the resulting final time after following the previous steps and close the panel.
-		            </ol>
+
+                    <p class="flavour-text">Tick-tock... as if you needed more reminding that time is running out.
+
+                    <ul>
+                        <li>Use the dials to the right of the clock to adjust the hands on the clock.
+                        <li>Set the clock to the correct time and press the button between the dials to disarm the module.
+                    </ul>
+
+                    <h3>Step A: Determine Starting Time</h3>
+
+                    <p>Use the circular chart on Page 2 to simulate a clock face for the appropriate hand.
+                        The resulting positions of each hand will provide a starting time needed to complete the module.
+
+                    <ul>
+                        <li>For minutes, determine a straight line on the chart that travels through all
+                            appropriate categories matching the features of the clock on the module, without
+                            intersecting any other categories.
+                        <li>Determine a second line for hours by applying the deviation adjustment described
+                            on Page 2 to each ring in the chart, one at a time in order, and then round
+                            the result down to full hours.
+                    </ul>
+
+                    <h3>Step B: Determine Final Time</h3>
+
+                    <p>Follow these steps using the starting time determined in Step A. Remember to adjust to
+                        the appropriate hour if the minutes are ever 60 or greater before continuing to the
+                        next step.
+
+                    <ol>
+                        <li>In minutes, add the sum of all digits in the serial number.
+                        <li>If the clock face is black and the number of minutes is now between one and
+                            twelve, swap the minutes and hours.
+                        <li>If the color of the hour and minute hands does not match that of the numerals,
+                            add 1 hour and 23 minutes.
+                        <li>If the bomb has registered any strikes, multiply the number of strikes by the
+                            number of D-Cell batteries present and add that many hours. Repeat this process
+                            using AA-Cell batteries for minutes.
+                        <li>If the casing and dials on the clock are a color other than gold, swap the
+                            digits in the minutes place (considering it as having a leading zero if necessary).
+                        <li>Subtract one hour for each minute remaining on the <em>digital countdown timer</em>,
+                            ignoring seconds.
+                    </ol>
+
                 </div>
-                <div class="page-footer relative-footer">Page 1 of 1</div>
+                <div class="page-footer relative-footer">Page 1 of 2</div>
+            </div>
+            <div class="page page-bg-07">
+                <div class="page-header">
+                    <span class="page-header-doc-title">Keep Talking and Nobody Explodes Mod</span>
+                    <span class="page-header-section-title">The Clock</span>
+                </div>
+                <div class="page-content">
+
+                    <img src='img/The Clock/Wheel Chart.svg' class='wheel-chart' />
+
+                    <table>
+                        <tr>
+                            <th colspan="4">Reference Key</th>
+                        </tr>
+                        <tr>
+                            <th>Ring</th>
+                            <th>Feature</th>
+                            <th>Categories</th>
+                            <th>Deviation*</th>
+                        </tr>
+                        <tr>
+                            <td>Inner</td>
+                            <td>Numerals</td>
+                            <td>Roman, Arabic, None.</td>
+                            <td>First</td>
+                        </tr>
+                        <tr>
+                            <td>Second</td>
+                            <td>Numeral Color</td>
+                            <td>BW=Black or White. (R)ed, (B)lue, (G)reen, (Y)ellow, (P)urple.</td>
+                            <td>Second</td>
+                        </tr>
+                        <tr>
+                            <td>Third</td>
+                            <td>Hand&nbsp;Type</td>
+                            <td>Spd=Spades, Arw=Arrows, Lin=Lines.</td>
+                            <td>Clockwise</td>
+                        </tr>
+                        <tr>
+                            <td>Outer</td>
+                            <td>Second Hand Color</td>
+                            <td>(Ma)tched or (Un)matched to the color of the minute/hour hands.  (Ab)sent=no second hand is present.</td>
+                            <td>Anti-clockwise</td>
+                        </tr>
+                    </table>
+
+                    <p>
+                        *The <em>deviation adjustment</em> is a shift of one category on the chart, either clockwise or anti-clockwise,
+                        from the original feature. The table refers to the specific character of the bomb’s serial number that applies.
+                        Deviate one category clockwise if it is a letter, and one category anti-clockwise if it is a numeral.
+
+                </div>
+                <div class="page-footer relative-footer">Page 2 of 2</div>
             </div>
         </div>
     </div>
