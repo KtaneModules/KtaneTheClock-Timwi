@@ -36,6 +36,7 @@ public class TheClockModule : MonoBehaviour
     public MeshRenderer NumeralsObj;
     public MeshRenderer ClockfaceObj;
     public MeshRenderer ClockfaceBackgroundObj;
+    public MeshRenderer ClockFrameObj;
 
     public GameObject SecondHand;
 
@@ -112,7 +113,7 @@ public class TheClockModule : MonoBehaviour
         ClockfaceBackgroundObj.material.color = _light ? _lightClockfaceBackgroundColor : _darkClockfaceBackgroundColor;
 
         // Gold or silver frame?
-        ClockfaceObj.material.color = Rnd.Range(0, 2) == 0 ? _clockfaceGold : _clockfaceSilver;
+        ClockFrameObj.material.color = Rnd.Range(0, 2) == 0 ? _clockfaceGold : _clockfaceSilver;
 
         // Pick a color for the numerals/tickmarks
         var numeralColors = _light ? _darkColors : _lightColors;

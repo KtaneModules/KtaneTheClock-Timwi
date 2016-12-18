@@ -321,6 +321,7 @@ MonoBehaviour:
   NumeralsObj: {fileID: 23000013815800316}
   ClockfaceObj: {fileID: 23000011531372280}
   ClockfaceBackgroundObj: {fileID: 23000012741671130}
+  ClockFrameObj: {fileID: 23000013869499406}
   SecondHand: {fileID: 1000010698566330}
 --- !u!114 &11489324
 MonoBehaviour:
