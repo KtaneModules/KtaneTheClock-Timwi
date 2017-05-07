@@ -273,6 +273,7 @@ MonoBehaviour:
   - {fileID: 4300000, guid: 8bb495eed0b50244f99ffcf71037db66, type: 3}
   - {fileID: 4300000, guid: 570beeddac7de4845ae757556a30c98e, type: 3}
   - {fileID: 4300000, guid: dc17804f3cfbe964bb1bafcc35349b1d, type: 3}
+  - {fileID: 4300000, guid: 3528b9e49bb89ff4b8a946003f8d2fd3, type: 3}
   ArabicNumerals:
   - {fileID: 4300000, guid: aeaa492fcf5a46e46a1ec55e35322f76, type: 3}
   - {fileID: 4300000, guid: 581e99a545b8ecf459bfcc97ddc5e7ab, type: 3}
@@ -488,10 +489,10 @@ Transform:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1000010836716514}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
   m_Children: []
   m_Father: {fileID: 4000013762294608}
   m_RootOrder: 2
@@ -802,7 +803,7 @@ MeshFilter:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1000010334024706}
-  m_Mesh: {fileID: 4300000, guid: c4e8c5d0d21969a4892fe8ed6df9ec1e, type: 3}
+  m_Mesh: {fileID: 4300000, guid: f53484e8ba53a0f4b9c4965739d32fde, type: 3}
 --- !u!33 &33000013549850560
 MeshFilter:
   m_ObjectHideFlags: 1
@@ -816,7 +817,7 @@ MeshFilter:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1000011205933436}
-  m_Mesh: {fileID: 4300000, guid: 435ac326cc172994faff1049d3bc6f50, type: 3}
+  m_Mesh: {fileID: 4300000, guid: 65725e9cc616c494681ec89389da5ed8, type: 3}
 --- !u!33 &33000013826616840
 MeshFilter:
   m_ObjectHideFlags: 1
