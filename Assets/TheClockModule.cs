@@ -70,8 +70,12 @@ public class TheClockModule : MonoBehaviour
     private float _bombTime;
     private bool _isSolved;
 
-    // Haha, “handheld”, get it? Hahaha. Seriously, it’s the coroutine that runs when the user holds the selectable that moves a hand.
+    // Haha, “handheld”, get it? Hahaha. Seriously, it’s the coroutine that runs while the user holds the selectable that moves a hand.
     private Coroutine _handHeld;
+    // Coroutine that runs while the user holds the submit button (which does reset on long-press).
+    private Coroutine _submitHeld;
+    private bool _submitHeldReset;
+    private bool _pauseSecondHand = false;
 
     private int _moduleId;
     private static int _moduleIdCounter = 1;
@@ -110,13 +114,40 @@ public class TheClockModule : MonoBehaviour
         HoursUp.OnInteract = btnDown(1, minutes: false);
 
         MinutesDown.OnInteractEnded = MinutesUp.OnInteractEnded = HoursDown.OnInteractEnded = HoursUp.OnInteractEnded = btnUp;
-        Submit.OnInteract = submit;
+        Submit.OnInteract = delegate
+        {
+            if (_submitHeld != null)
+                StopCoroutine(_submitHeld);
+            _submitHeldReset = false;
+            _submitHeld = StartCoroutine(holdSubmit());
+            return false;
+        };
+        Submit.OnInteractEnded = delegate
+        {
+            if (_submitHeld != null)
+                StopCoroutine(_submitHeld);
+            _submitHeld = null;
+            if (!_submitHeldReset)
+                submit();
+        };
 
         Module.OnActivate = delegate
         {
             _bombTime = Bomb.GetTime();
             Debug.LogFormat("[The Clock #{0}] Bomb timer: {1}", _moduleId, _bombTime);
         };
+    }
+
+    private IEnumerator holdSubmit()
+    {
+        yield return new WaitForSeconds(.5f);
+
+        // Button was pressed for 1.5 seconds: do Reset instead of Submit.
+        _submitHeldReset = true;
+        _shownTime = _initialTime;
+        if (_handHeld != null)
+            StopCoroutine(_handHeld);
+        _handHeld = StartCoroutine(moveHands(0, false));
     }
 
     private void LogAnswer()
@@ -221,20 +252,24 @@ public class TheClockModule : MonoBehaviour
 
     private IEnumerator moveSecondHand()
     {
-        var prevTime = new DateTime();
+        var prevSeconds = -1;
         while (true)
         {
             var time = DateTime.Now;
-            if (time.Second != prevTime.Second)
+            var seconds = _isSolved
+                ? time.Second
+                : (-(int) Mathf.Ceil(Bomb.GetTime()) % 60 + 60) % 60;
+
+            if (seconds != prevSeconds && !_pauseSecondHand)
             {
-                SecondHand.transform.localEulerAngles = new Vector3(0, (time.Second - .7f) * 6, 0);
+                SecondHand.transform.localEulerAngles = new Vector3(0, (seconds - .7f) * 6, 0);
                 yield return null;
-                SecondHand.transform.localEulerAngles = new Vector3(0, (time.Second - .3f) * 6, 0);
+                SecondHand.transform.localEulerAngles = new Vector3(0, (seconds - .3f) * 6, 0);
                 yield return null;
 
-                SecondHand.transform.localEulerAngles = new Vector3(0, (time.Second + .1f) * 6, 0);
+                SecondHand.transform.localEulerAngles = new Vector3(0, (seconds + .1f) * 6, 0);
                 yield return null;
-                SecondHand.transform.localEulerAngles = new Vector3(0, time.Second * 6, 0);
+                SecondHand.transform.localEulerAngles = new Vector3(0, seconds * 6, 0);
             }
 
             if (_isSolved)
@@ -243,8 +278,8 @@ public class TheClockModule : MonoBehaviour
                 HourHand.transform.localRotation = Quaternion.Slerp(HourHand.transform.localRotation, Quaternion.Euler(0, (time.Hour * 60 + time.Minute) * .5f, 0), .3f);
                 AmPm.transform.localRotation = Quaternion.Slerp(AmPm.transform.localRotation, Quaternion.Euler(0, time.Hour < 12 ? -60 : 0, 0), .3f);
             }
+            prevSeconds = seconds;
             yield return null;
-            prevTime = time;
         }
     }
 
@@ -278,39 +313,55 @@ public class TheClockModule : MonoBehaviour
         };
     }
 
-    private IEnumerator moveHands(int multi, bool minutes)
+    private IEnumerator moveHands(int multi, bool minutes, bool secondsOnly = false)
     {
         var start = Time.frameCount;
         var speed = 16;
 
-        _shownTime = ((_shownTime + multi * (minutes ? 1 : 60)) % totalMinutes + totalMinutes) % totalMinutes;
+        var time = DateTime.Now;
+        _shownTime = _isSolved
+            ? time.Hour * 60 + time.Minute
+            : ((_shownTime + multi * (minutes ? 1 : 60)) % totalMinutes + totalMinutes) % totalMinutes;
 
         while (true)
         {
             yield return null;
 
-            MinuteHand.transform.localRotation = Quaternion.Slerp(MinuteHand.transform.localRotation, minuteHandRotation, .3f);
-            HourHand.transform.localRotation = Quaternion.Slerp(HourHand.transform.localRotation, hourHandRotation, .3f);
-            AmPm.transform.localRotation = Quaternion.Slerp(AmPm.transform.localRotation, amPmRotation, .3f);
+            if (secondsOnly)
+                SecondHand.transform.localRotation = Quaternion.Slerp(SecondHand.transform.localRotation, Quaternion.Euler(0, DateTime.Now.Second * 6, 0), .3f);
+            else
+            {
+                MinuteHand.transform.localRotation = Quaternion.Slerp(MinuteHand.transform.localRotation, minuteHandRotation, .3f);
+                HourHand.transform.localRotation = Quaternion.Slerp(HourHand.transform.localRotation, hourHandRotation, .3f);
+                AmPm.transform.localRotation = Quaternion.Slerp(AmPm.transform.localRotation, amPmRotation, .3f);
+            }
 
             if (Time.frameCount - start > speed)
             {
                 if (multi == 0)
+                {
+                    if (!secondsOnly)
+                    {
+                        MinuteHand.transform.localRotation = minuteHandRotation;
+                        HourHand.transform.localRotation = hourHandRotation;
+                        AmPm.transform.localRotation = amPmRotation;
+                    }
                     yield break;
+                }
 
                 _shownTime = ((_shownTime + multi * (minutes ? 1 : 60)) % totalMinutes + totalMinutes) % totalMinutes;
 
                 start = Time.frameCount;
-                if (speed > 1)
+                if (speed > (minutes ? 1 : 4))
                     speed /= 2;
             }
         }
     }
 
-    private bool submit()
+    private void submit()
     {
         if (_isSolved)
-            return false;
+            return;
 
         Submit.AddInteractionPunch();
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, Submit.transform);
@@ -324,6 +375,7 @@ public class TheClockModule : MonoBehaviour
             Debug.LogFormat("[The Clock #{0}] Module solved.", _moduleId);
             Module.HandlePass();
             _isSolved = true;
+            StartCoroutine(transitionSecondHand());
         }
         else
         {
@@ -333,12 +385,18 @@ public class TheClockModule : MonoBehaviour
             LogAnswer();
             _shownTime = _initialTime;
             Module.HandleStrike();
-
-            if (_handHeld != null)
-                StopCoroutine(_handHeld);
-            _handHeld = StartCoroutine(moveHands(0, false));
         }
-        return false;
+
+        if (_handHeld != null)
+            StopCoroutine(_handHeld);
+        _handHeld = StartCoroutine(moveHands(0, false, secondsOnly: _isSolved));
+    }
+
+    private IEnumerator transitionSecondHand()
+    {
+        _pauseSecondHand = true;
+        yield return new WaitForSeconds(.5f);
+        _pauseSecondHand = false;
     }
 
     private string formatTime(int time)
