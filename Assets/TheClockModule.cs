@@ -28,6 +28,8 @@ public class TheClockModule : MonoBehaviour
     public MeshFilter HourHand;
     public MeshFilter MinuteHand;
     public GameObject AmPm;
+    public MeshRenderer[] AmPmBackground;
+    public MeshRenderer[] AmPmWriting;
 
     public MeshRenderer HourHandObj;
     public MeshRenderer MinuteHandObj;
@@ -39,8 +41,8 @@ public class TheClockModule : MonoBehaviour
     public MeshRenderer[] Knobs;
 
     public GameObject SecondHand;
-    public Material AmPmMaterial;
-    public Material AmPmTextMaterial;
+    public Material AmPmWhiteMaterial;
+    public Material AmPmBlackMaterial;
     public KMSelectable MinutesDown, MinutesUp, HoursDown, HoursUp, Submit;
 
     private static Color[] _colors = newArray(
@@ -160,12 +162,11 @@ public class TheClockModule : MonoBehaviour
 
     private void setAmPmColor()
     {
-        var black = new Color(0x20 / 255f, 0x20 / 255f, 0x20 / 255f);
-        var white = Color.white;
-
         _amPmWhiteOnBlack = Rnd.Range(0, 2) == 0;
-        AmPmMaterial.color = _amPmWhiteOnBlack ? black : white;
-        AmPmTextMaterial.color = _amPmWhiteOnBlack ? white : black;
+        foreach (var obj in AmPmWriting)
+            obj.material = _amPmWhiteOnBlack ? AmPmWhiteMaterial : AmPmBlackMaterial;
+        foreach (var obj in AmPmBackground)
+            obj.material = _amPmWhiteOnBlack ? AmPmBlackMaterial : AmPmWhiteMaterial;
         Debug.LogFormat("[The Clock #{0}] AM/PM color: {1}", _moduleId, _amPmWhiteOnBlack ? "white on black" : "black on white");
     }
 
@@ -238,9 +239,8 @@ public class TheClockModule : MonoBehaviour
 
             if (_isSolved)
             {
-                var decisecs = time.Ticks / 1000000;
-                MinuteHand.transform.localRotation = Quaternion.Slerp(MinuteHand.transform.localRotation, Quaternion.Euler(0, (decisecs % 36000) * .01f, 0), .3f);
-                HourHand.transform.localRotation = Quaternion.Slerp(HourHand.transform.localRotation, Quaternion.Euler(0, decisecs / 1200f, 0), .3f);
+                MinuteHand.transform.localRotation = Quaternion.Slerp(MinuteHand.transform.localRotation, Quaternion.Euler(0, (time.Minute * 60 + time.Second) * .1f, 0), .3f);
+                HourHand.transform.localRotation = Quaternion.Slerp(HourHand.transform.localRotation, Quaternion.Euler(0, (time.Hour * 60 + time.Minute) * .5f, 0), .3f);
                 AmPm.transform.localRotation = Quaternion.Slerp(AmPm.transform.localRotation, Quaternion.Euler(0, time.Hour < 12 ? -60 : 0, 0), .3f);
             }
             yield return null;
