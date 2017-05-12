@@ -2,8 +2,8 @@
 {
     enum HandStyle
     {
-        Line,
-        Arrow,
-        Spade
+        Spades = 0,
+        Arrows = 1,
+        Lines = 2,
     }
 }

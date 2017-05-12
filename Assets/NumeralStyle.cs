@@ -2,8 +2,8 @@
 {
     enum NumeralStyle
     {
-        None,
-        Roman,
-        Arabic
+        None = 0,
+        Arabic = 1,
+        Roman = 2
     }
 }
