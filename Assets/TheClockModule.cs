@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Globalization;
 using TheClock;
@@ -488,6 +488,14 @@ public class TheClockModule : MonoBehaviour
             {
                 yield return new WaitForSeconds(0.1f);
                 submit();
+
+                if (_isSolved)
+                {
+                    yield return "solved";
+                } else
+                {
+                    yield return "strike";
+                }
             }
         }
     }
