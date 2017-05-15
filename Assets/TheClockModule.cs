@@ -423,28 +423,6 @@ public class TheClockModule : MonoBehaviour
                     newTime = time;
                 }
             }
-            else if (cmd == "add" || cmd == "sub" || cmd == "subtract")
-            {
-                DateTime result;
-                if (DateTime.TryParseExact(split[1], new string[] { "hh:mm", "HH:mm" }, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out result))
-                {
-                    int time = result.Hour * 60 + result.Minute;
-                    if (cmd == "add")
-                    {
-                        newTime += time;
-                    }
-                    else
-                    {
-                        newTime -= time;
-                    }
-                }
-            }
-
-            // Ignore the command if they didn't change the time.
-            if (newTime == _shownTime)
-            {
-                yield break;
-            }
 
             // Keep underflow or overflow in range.
             newTime = (newTime % totalMinutes + totalMinutes) % totalMinutes;
