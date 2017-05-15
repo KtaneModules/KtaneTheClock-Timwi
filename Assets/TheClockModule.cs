@@ -67,7 +67,7 @@ public class TheClockModule : MonoBehaviour
     private int _numeralsColor;
     private bool _amPmWhiteOnBlack;
     private bool _secondsHandPresent;
-    private float _bombTime;
+    private float _originalBombTime;
     private bool _isSolved;
 
     // Haha, “handheld”, get it? Hahaha. Seriously, it’s the coroutine that runs while the user holds the selectable that moves a hand.
@@ -133,8 +133,8 @@ public class TheClockModule : MonoBehaviour
 
         Module.OnActivate = delegate
         {
-            _bombTime = Bomb.GetTime();
-            Debug.LogFormat("[The Clock #{0}] Bomb timer: {1}", _moduleId, _bombTime);
+            _originalBombTime = Bomb.GetTime();
+            Debug.LogFormat("[The Clock #{0}] Bomb timer: {1}", _moduleId, _originalBombTime);
         };
     }
 
@@ -143,6 +143,7 @@ public class TheClockModule : MonoBehaviour
         yield return new WaitForSeconds(.5f);
 
         // Button was pressed for 1.5 seconds: do Reset instead of Submit.
+        Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, Submit.transform);
         _submitHeldReset = true;
         _shownTime = _initialTime;
         if (_handHeld != null)
@@ -352,7 +353,7 @@ public class TheClockModule : MonoBehaviour
                 _shownTime = ((_shownTime + multi * (minutes ? 1 : 60)) % totalMinutes + totalMinutes) % totalMinutes;
 
                 start = Time.frameCount;
-                if (speed > (minutes ? 1 : 4))
+                if (speed > (minutes ? 1 : 8))
                     speed /= 2;
             }
         }
@@ -366,8 +367,9 @@ public class TheClockModule : MonoBehaviour
         Submit.AddInteractionPunch();
         Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, Submit.transform);
 
-        var isFirstHalf = Bomb.GetTime() > _bombTime / 2;
-        Debug.LogFormat("[The Clock #{0}] Pressed Submit {1} half of the bomb’s time has elapsed. Expecting {2}.", _moduleId, isFirstHalf ? "before" : "after", isFirstHalf ? "add" : "subtract");
+        var bombTime = Bomb.GetTime();
+        var isFirstHalf = bombTime > _originalBombTime / 2;
+        Debug.LogFormat("[The Clock #{0}] Pressed Submit when time remaining was {3}, which is {1} than half of the bomb’s original time. Expecting {2}.", _moduleId, isFirstHalf ? "more" : "less", isFirstHalf ? "add" : "subtract", bombTime);
 
         if (_shownTime == (_initialTime + (isFirstHalf ? _addTime : totalMinutes - _addTime)) % totalMinutes)
         {
