@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Globalization;
 using TheClock;
 using UnityEngine;
 
@@ -402,5 +403,78 @@ public class TheClockModule : MonoBehaviour
     private string formatTime(int time)
     {
         return string.Format("{0}:{1:00} {2}", (time / 60 + 11) % 12 + 1, time % 60, time / 720 == 0 ? "am" : "pm");
+    }
+
+    public IEnumerator ProcessTwitchCommand(string command)
+    {
+        string[] split = command.ToLowerInvariant().Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
+        int newTime = _shownTime;
+
+        if (split.Length == 2)
+        {
+            // Convert formatted time to minutes.
+            var cmd = split[0];
+            if (cmd == "set")
+            {
+                DateTime result;
+                if (DateTime.TryParseExact(split[1], new string[] { "hh:mm tt", "HH:mm" }, CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out result))
+                {
+                    int time = result.Hour * 60 + result.Minute;
+                    newTime = time;
+                }
+            }
+
+            // Keep underflow or overflow in range.
+            newTime = (newTime % totalMinutes + totalMinutes) % totalMinutes;
+
+            if (newTime > _shownTime) // We need to go backwards.
+            {
+                if (newTime - _shownTime >= 60)
+                {
+                    yield return HoursUp;
+                    yield return new WaitUntil(() => newTime - _shownTime < 60);
+                    yield return HoursUp;
+                    yield return new WaitForSeconds(0.1f);
+                }
+
+                if (newTime - _shownTime >= 1)
+                {
+                    yield return MinutesUp;
+                    yield return new WaitUntil(() => newTime - _shownTime < 1);
+                    yield return MinutesUp;
+                }
+            }
+            else if (newTime < _shownTime) // We need to go forwards.
+            {
+                if (_shownTime - newTime >= 60)
+                {
+                    yield return HoursDown;
+                    yield return new WaitUntil(() => _shownTime - newTime < 60);
+                    yield return HoursDown;
+                    yield return new WaitForSeconds(0.1f);
+                }
+
+                if (_shownTime - newTime >= 1)
+                {
+                    yield return MinutesDown;
+                    yield return new WaitUntil(() => _shownTime - newTime < 1);
+                    yield return MinutesDown;
+                }
+            }
+
+            if (_shownTime == newTime)
+            {
+                yield return new WaitForSeconds(0.1f);
+                submit();
+
+                if (_isSolved)
+                {
+                    yield return "solved";
+                } else
+                {
+                    yield return "strike";
+                }
+            }
+        }
     }
 }
