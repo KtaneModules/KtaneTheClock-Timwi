@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Globalization;
+using System.Linq;
 using TheClock;
 using UnityEngine;
 
@@ -109,10 +110,10 @@ public class TheClockModule : MonoBehaviour
         HourHand.transform.localRotation = hourHandRotation;
         AmPm.transform.localRotation = amPmRotation;
 
-        MinutesDown.OnInteract = btnDown(-1, minutes: true);
-        MinutesUp.OnInteract = btnDown(1, minutes: true);
-        HoursDown.OnInteract = btnDown(-1, minutes: false);
-        HoursUp.OnInteract = btnDown(1, minutes: false);
+        MinutesDown.OnInteract = btnDown(MinutesDown, -1, minutes: true);
+        MinutesUp.OnInteract = btnDown(MinutesUp, 1, minutes: true);
+        HoursDown.OnInteract = btnDown(HoursDown, -1, minutes: false);
+        HoursUp.OnInteract = btnDown(HoursUp, 1, minutes: false);
 
         MinutesDown.OnInteractEnded = MinutesUp.OnInteractEnded = HoursDown.OnInteractEnded = HoursUp.OnInteractEnded = btnUp;
         Submit.OnInteract = delegate
@@ -298,15 +299,15 @@ public class TheClockModule : MonoBehaviour
         }
     }
 
-    private KMSelectable.OnInteractHandler btnDown(int multi, bool minutes)
+    private KMSelectable.OnInteractHandler btnDown(KMSelectable selectable, int multi, bool minutes)
     {
         return delegate
         {
             if (_isSolved)
                 return false;
 
-            Submit.AddInteractionPunch();
-            Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, Submit.transform);
+            selectable.AddInteractionPunch(.25f);
+            Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, selectable.transform);
 
             if (_handHeld != null)
                 StopCoroutine(_handHeld);
@@ -407,12 +408,19 @@ public class TheClockModule : MonoBehaviour
         return string.Format("{0}:{1:00} {2}", (time / 60 + 11) % 12 + 1, time % 60, time / 720 == 0 ? "am" : "pm");
     }
 
+    private string TwitchHelpMessage = @"Use “{0} hours forward” or “{0} minutes backward” to change the time incrementally or “{0} set 12:34 pm” to set it directly and submit. Use “{0} submit” to submit as is.";
+
     public IEnumerator ProcessTwitchCommand(string command)
     {
-        string[] split = command.ToLowerInvariant().Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
+        string[] split = command.ToLowerInvariant().Split(new[] { ' ' }, 3, StringSplitOptions.RemoveEmptyEntries);
         DateTime result;
 
-        if (split.Length == 2 && split[0] == "set" && DateTime.TryParseExact(split[1], "hh:mm tt", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out result))
+        if (split.Length == 1 && (split[0] == "set" || split[0] == "submit"))
+        {
+            yield return new WaitForSeconds(.1f);
+            submit();
+        }
+        else if (split.Length == 3 && split[0] == "set" && DateTime.TryParseExact(split[1] + " " + split[2], "hh:mm tt", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out result))
         {
             // Convert formatted time to minutes.
             var newTime = result.Hour * 60 + result.Minute;
@@ -452,8 +460,42 @@ public class TheClockModule : MonoBehaviour
                 }
             }
 
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(.1f);
             submit();
+        }
+        else if (split.Length >= 2 && split.Length <= 3 && "hm".Contains(split[0][0]) && "fb".Contains(split[1][0]))
+        {
+            yield return new WaitForSeconds(.1f);
+
+            var hours = split[0][0] == 'h';
+            var forward = split[1][0] == 'f';
+            var btn = forward ? (hours ? HoursUp : MinutesUp) : (hours ? HoursDown : MinutesDown);
+
+            int amount;
+            if (split.Length < 3 || !int.TryParse(split[2], out amount))
+                amount = 1;
+            if (hours)
+                amount *= 60;
+            var amountHours = (amount / 60) % 24;
+            var amountMinutes = amount % 60;
+            var origTime = _shownTime;
+            var targetTime = (origTime + totalMinutes + (amount % totalMinutes) * (forward ? 1 : -1)) % totalMinutes;
+
+            while (amountHours > 0)
+            {
+                yield return forward ? HoursUp : HoursDown;
+                yield return new WaitForSeconds(.05f);
+                yield return forward ? HoursUp : HoursDown;
+                yield return new WaitForSeconds(.1f);
+                amountHours--;
+            }
+
+            if (amountMinutes > 0)
+            {
+                yield return btn;
+                yield return new WaitUntil(() => _shownTime == targetTime);
+                yield return btn;
+            }
         }
     }
 }
