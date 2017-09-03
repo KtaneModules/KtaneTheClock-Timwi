@@ -318,8 +318,8 @@ public class TheClockModule : MonoBehaviour
 
     private IEnumerator moveHands(int multi, bool minutes, bool secondsOnly = false)
     {
-        var start = Time.frameCount;
-        var speed = 16;
+        var start = Time.fixedTime;
+        var speed = 8f;
 
         var time = DateTime.Now;
         _shownTime = _isSolved
@@ -339,7 +339,7 @@ public class TheClockModule : MonoBehaviour
                 AmPm.transform.localRotation = Quaternion.Slerp(AmPm.transform.localRotation, amPmRotation, .3f);
             }
 
-            if (Time.frameCount - start > speed)
+            if ((Time.fixedTime - start) * 30 > speed)
             {
                 if (multi == 0)
                 {
@@ -354,9 +354,12 @@ public class TheClockModule : MonoBehaviour
 
                 _shownTime = ((_shownTime + multi * (minutes ? 1 : 60)) % totalMinutes + totalMinutes) % totalMinutes;
 
-                start = Time.frameCount;
-                if (speed > (minutes ? 1 : 8))
-                    speed /= 2;
+                start = Time.fixedTime;
+                if (speed > (minutes ? .75f : 4))
+                {
+                    speed *= .75f;
+                    Debug.Log("Setting speed to " + speed);
+                }
             }
         }
     }
