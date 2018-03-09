@@ -10,8 +10,19 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 615501dbe4f3fe94fbf4b564abb10237, type: 3}
   m_Name: ModConfig
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   id: TheClock
   title: The Clock
+  description: 'Tick-tock... as if you needed more reminding that time is running
+    out.
+
+
+    Module created by TheAuthorOfOZ and Timwi.
+
+
+    [url=http://ktane.timwi.de/PDF/The%20Clock.pdf]Manual PDF[/url]
+
+    [url=http://ktane.timwi.de/HTML/The%20Clock.html]Manual HTML[/url]'
   version: 1.0
   outputFolder: build
+  previewImage: {fileID: 2800000, guid: 2f6598399b401c941911337ae602d3eb, type: 3}
