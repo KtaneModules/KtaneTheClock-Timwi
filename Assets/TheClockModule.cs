@@ -411,7 +411,9 @@ public class TheClockModule : MonoBehaviour
         return string.Format("{0}:{1:00} {2}", (time / 60 + 11) % 12 + 1, time % 60, time / 720 == 0 ? "am" : "pm");
     }
 
-    public string TwitchHelpMessage = @"Use “{0} hours forward” or “{0} minutes backward” to change the time incrementally or “{0} set 12:34 pm” to set it directly and submit. Use “{0} submit” to submit as is.";
+#pragma warning disable 414
+    private string TwitchHelpMessage = @"Use “!{0} hours forward 5” or “!{0} minutes backward 5” to change the time incrementally and then “!{0} submit” to submit; or use “!{0} set 12:34 pm” to set and submit it directly.";
+#pragma warning restore 414
 
     public IEnumerator ProcessTwitchCommand(string command)
     {
@@ -430,7 +432,9 @@ public class TheClockModule : MonoBehaviour
             yield return new WaitForSeconds(.1f);
             submit();
         }
-        else if (split.Length == 3 && split[0] == "set" && DateTime.TryParseExact(split[1] + " " + split[2], "hh:mm tt", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out result))
+        else if (
+            (split.Length == 2 && (split[0] == "set" || split[0] == "submit") && DateTime.TryParseExact(split[1], "hh:mmtt", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out result)) ||
+            (split.Length == 3 && (split[0] == "set" || split[0] == "submit") && DateTime.TryParseExact(split[1] + " " + split[2], "hh:mm tt", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out result)))
         {
             // Convert formatted time to minutes.
             var newTime = result.Hour * 60 + result.Minute;
