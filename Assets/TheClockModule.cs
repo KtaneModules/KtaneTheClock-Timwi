@@ -423,63 +423,84 @@ public class TheClockModule : MonoBehaviour
         if (split.Length == 1 && split[0] == "reset")
         {
             yield return null;
+
+            // Hold the Submit button for 1sec to do a reset
             yield return Submit;
             yield return new WaitForSeconds(1f);
             yield return Submit;
         }
         else if (split.Length == 1 && (split[0] == "set" || split[0] == "submit"))
         {
-            yield return new WaitForSeconds(.1f);
+            yield return null;
             submit();
         }
         else if (
             (split.Length == 2 && (split[0] == "set" || split[0] == "submit") && DateTime.TryParseExact(split[1], "hh:mmtt", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out result)) ||
             (split.Length == 3 && (split[0] == "set" || split[0] == "submit") && DateTime.TryParseExact(split[1] + " " + split[2], "hh:mm tt", CultureInfo.InvariantCulture, DateTimeStyles.AllowWhiteSpaces, out result)))
         {
+            Debug.LogFormat(@"<The Clock #{0}> Twitch Plays ‘set’ command: {1}", _moduleId, command);
+
             // Convert formatted time to minutes.
             var newTime = result.Hour * 60 + result.Minute;
+            Debug.LogFormat(@"<The Clock #{0}> newTime = {1}; coroutine active = {2}", _moduleId, newTime, _handHeld != null);
+
+            if (_handHeld != null)
+                StopCoroutine(_handHeld);
+
+            yield return null;
 
             if (newTime > _shownTime) // We need to go backwards.
             {
                 if (newTime - _shownTime >= 60)
                 {
-                    yield return HoursUp;
+                    HoursUp.OnInteract();
+                    Debug.LogFormat(@"<The Clock #{0}> Going backwards in hours...", _moduleId);
                     yield return new WaitUntil(() => newTime - _shownTime < 60);
-                    yield return HoursUp;
-                    yield return new WaitForSeconds(0.1f);
+                    Debug.LogFormat(@"<The Clock #{0}> ... done", _moduleId);
+                    HoursUp.OnInteractEnded();
+                    yield return new WaitForSeconds(.25f);
                 }
 
                 if (newTime - _shownTime >= 1)
                 {
-                    yield return MinutesUp;
+                    MinutesUp.OnInteract();
+                    Debug.LogFormat(@"<The Clock #{0}> Going backwards in minutes...", _moduleId);
                     yield return new WaitUntil(() => newTime - _shownTime < 1);
-                    yield return MinutesUp;
+                    Debug.LogFormat(@"<The Clock #{0}> ... done", _moduleId);
+                    MinutesUp.OnInteractEnded();
                 }
             }
             else if (newTime < _shownTime) // We need to go forwards.
             {
                 if (_shownTime - newTime >= 60)
                 {
-                    yield return HoursDown;
+                    HoursDown.OnInteract();
+                    Debug.LogFormat(@"<The Clock #{0}> Going forwards in hours...", _moduleId);
                     yield return new WaitUntil(() => _shownTime - newTime < 60);
-                    yield return HoursDown;
-                    yield return new WaitForSeconds(0.1f);
+                    Debug.LogFormat(@"<The Clock #{0}> ... done", _moduleId);
+                    HoursDown.OnInteractEnded();
+                    yield return new WaitForSeconds(.25f);
                 }
 
                 if (_shownTime - newTime >= 1)
                 {
-                    yield return MinutesDown;
+                    MinutesDown.OnInteract();
+                    Debug.LogFormat(@"<The Clock #{0}> Going forwards in minutes...", _moduleId);
                     yield return new WaitUntil(() => _shownTime - newTime < 1);
-                    yield return MinutesDown;
+                    Debug.LogFormat(@"<The Clock #{0}> ... done", _moduleId);
+                    MinutesDown.OnInteractEnded();
                 }
             }
 
-            yield return new WaitForSeconds(.1f);
+            yield return new WaitForSeconds(.5f);
             submit();
+
+            Debug.LogFormat(@"<The Clock #{0}> Twitch Plays handler done", _moduleId);
         }
         else if (split.Length >= 2 && split.Length <= 3 && "hm".Contains(split[0][0]) && "fb".Contains(split[1][0]))
         {
-            yield return new WaitForSeconds(.1f);
+            Debug.LogFormat(@"<The Clock #{0}> Twitch Plays relative command: {1}", _moduleId, command);
+            yield return null;
 
             var hours = split[0][0] == 'h';
             var forward = split[1][0] == 'f';
@@ -495,21 +516,32 @@ public class TheClockModule : MonoBehaviour
             var origTime = _shownTime;
             var targetTime = (origTime + totalMinutes + (amount % totalMinutes) * (forward ? 1 : -1)) % totalMinutes;
 
+            Debug.LogFormat(@"<The Clock #{0}> Coroutine active: {1}", _moduleId, _handHeld != null);
+
+            if (_handHeld != null)
+                StopCoroutine(_handHeld);
+
             while (amountHours > 0)
             {
-                yield return forward ? HoursUp : HoursDown;
+                (forward ? HoursUp : HoursDown).OnInteract();
                 yield return new WaitForSeconds(.05f);
-                yield return forward ? HoursUp : HoursDown;
+                (forward ? HoursUp : HoursDown).OnInteractEnded();
                 yield return new WaitForSeconds(.1f);
                 amountHours--;
             }
 
             if (amountMinutes > 0)
             {
-                yield return btn;
+                yield return new WaitForSeconds(.5f);
+                btn.OnInteract();
+                Debug.LogFormat(@"<The Clock #{0}> Going in minutes...", _moduleId);
                 yield return new WaitUntil(() => _shownTime == targetTime);
-                yield return btn;
+                Debug.LogFormat(@"<The Clock #{0}> ... done", _moduleId);
+                btn.OnInteractEnded();
+                yield return new WaitForSeconds(.5f);
             }
+
+            Debug.LogFormat(@"<The Clock #{0}> Twitch Plays handler done.", _moduleId);
         }
     }
 }
