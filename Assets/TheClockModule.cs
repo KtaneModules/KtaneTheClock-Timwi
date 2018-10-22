@@ -412,7 +412,7 @@ public class TheClockModule : MonoBehaviour
     }
 
 #pragma warning disable 414
-    private string TwitchHelpMessage = @"Use “!{0} hours forward 5” or “!{0} minutes backward 5” to change the time incrementally and then “!{0} submit” to submit; or use “!{0} set 12:34 pm” to set and submit it directly.";
+    private readonly string TwitchHelpMessage = @"Use “!{0} hours forward 5” or “!{0} minutes backward 5” to change the time incrementally and then “!{0} submit” to submit; or use “!{0} set 12:34 pm” to set and submit it directly.";
 #pragma warning restore 414
 
     public IEnumerator ProcessTwitchCommand(string command)
