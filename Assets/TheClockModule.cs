@@ -87,6 +87,9 @@ public class TheClockModule : MonoBehaviour
         _moduleId = _moduleIdCounter++;
         _isSolved = false;
 
+        _originalBombTime = Bomb.GetTime();
+        Debug.LogFormat("[The Clock #{0}] Initial bomb timer: {1}", _moduleId, _originalBombTime);
+
         // Decide upon all the variables
         setHandStyle();           // minutes, category 1
         setNumeralsColor();   // minutes, category 2
@@ -131,12 +134,6 @@ public class TheClockModule : MonoBehaviour
             _submitHeld = null;
             if (!_submitHeldReset)
                 submit();
-        };
-
-        Module.OnActivate = delegate
-        {
-            _originalBombTime = Bomb.GetTime();
-            Debug.LogFormat("[The Clock #{0}] Bomb timer: {1}", _moduleId, _originalBombTime);
         };
     }
 
@@ -412,7 +409,7 @@ public class TheClockModule : MonoBehaviour
     }
 
 #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"Use “!{0} hours forward 5” or “!{0} minutes backward 5” to change the time incrementally and then “!{0} submit” to submit; or use “!{0} set 12:34 pm” to set and submit it directly.";
+    private readonly string TwitchHelpMessage = @"!{0} hours forward 5 | !{0} minutes backward 5 | !{0} submit | !{0} set 12:34 pm [sets and submits the time directly] | !{0} reset";
 #pragma warning restore 414
 
     public IEnumerator ProcessTwitchCommand(string command)
