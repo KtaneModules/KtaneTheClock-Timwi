@@ -45,7 +45,7 @@ public class TheClockModule : MonoBehaviour
     public GameObject SecondHand;
     public Material AmPmWhiteMaterial;
     public Material AmPmBlackMaterial;
-    public KMSelectable MinutesDown, MinutesUp, HoursDown, HoursUp, Submit;
+    public KMSelectable MinutesBackward, MinutesForward, HoursBackward, HoursForward, Submit;
 
     private static Color[] _colors = newArray(
         new Color(0xA5 / 255f, 0x13 / 255f, 0x13 / 255f),   // red
@@ -113,12 +113,12 @@ public class TheClockModule : MonoBehaviour
         HourHand.transform.localRotation = hourHandRotation;
         AmPm.transform.localRotation = amPmRotation;
 
-        MinutesDown.OnInteract = btnDown(MinutesDown, -1, minutes: true);
-        MinutesUp.OnInteract = btnDown(MinutesUp, 1, minutes: true);
-        HoursDown.OnInteract = btnDown(HoursDown, -1, minutes: false);
-        HoursUp.OnInteract = btnDown(HoursUp, 1, minutes: false);
+        MinutesForward.OnInteract = btnDown(MinutesForward, 1, minutes: true);
+        MinutesBackward.OnInteract = btnDown(MinutesBackward, -1, minutes: true);
+        HoursForward.OnInteract = btnDown(HoursForward, 1, minutes: false);
+        HoursBackward.OnInteract = btnDown(HoursBackward, -1, minutes: false);
 
-        MinutesDown.OnInteractEnded = MinutesUp.OnInteractEnded = HoursDown.OnInteractEnded = HoursUp.OnInteractEnded = btnUp;
+        MinutesBackward.OnInteractEnded = MinutesForward.OnInteractEnded = HoursBackward.OnInteractEnded = HoursForward.OnInteractEnded = btnUp;
         Submit.OnInteract = delegate
         {
             if (_submitHeld != null)
@@ -160,26 +160,26 @@ public class TheClockModule : MonoBehaviour
         switch (_handStyle = (HandStyle) Rnd.Range(0, 3))
         {
             case HandStyle.Lines:
-                {
-                    var ix = Rnd.Range(0, HourLine.Length);
-                    HourHand.mesh = HourLine[ix];
-                    MinuteHand.mesh = MinuteLine[ix];
-                    break;
-                }
+            {
+                var ix = Rnd.Range(0, HourLine.Length);
+                HourHand.mesh = HourLine[ix];
+                MinuteHand.mesh = MinuteLine[ix];
+                break;
+            }
             case HandStyle.Arrows:
-                {
-                    var ix = Rnd.Range(0, HourArrow.Length);
-                    HourHand.mesh = HourArrow[ix];
-                    MinuteHand.mesh = MinuteArrow[ix];
-                    break;
-                }
+            {
+                var ix = Rnd.Range(0, HourArrow.Length);
+                HourHand.mesh = HourArrow[ix];
+                MinuteHand.mesh = MinuteArrow[ix];
+                break;
+            }
             case HandStyle.Spades:
-                {
-                    var ix = Rnd.Range(0, HourSpade.Length);
-                    HourHand.mesh = HourSpade[ix];
-                    MinuteHand.mesh = MinuteSpade[ix];
-                    break;
-                }
+            {
+                var ix = Rnd.Range(0, HourSpade.Length);
+                HourHand.mesh = HourSpade[ix];
+                MinuteHand.mesh = MinuteSpade[ix];
+                break;
+            }
         }
         Debug.LogFormat("[The Clock #{0}] Hand style: {1}", _moduleId, _handStyle);
     }
@@ -353,10 +353,7 @@ public class TheClockModule : MonoBehaviour
 
                 start = Time.fixedTime;
                 if (speed > (minutes ? .75f : 4))
-                {
                     speed *= .75f;
-                    Debug.Log("Setting speed to " + speed);
-                }
             }
         }
     }
@@ -450,42 +447,42 @@ public class TheClockModule : MonoBehaviour
             {
                 if (newTime - _shownTime >= 60)
                 {
-                    HoursUp.OnInteract();
+                    HoursForward.OnInteract();
                     Debug.LogFormat(@"<The Clock #{0}> Going backwards in hours...", _moduleId);
                     yield return new WaitUntil(() => newTime - _shownTime < 60);
                     Debug.LogFormat(@"<The Clock #{0}> ... done", _moduleId);
-                    HoursUp.OnInteractEnded();
+                    HoursForward.OnInteractEnded();
                     yield return new WaitForSeconds(.25f);
                 }
 
                 if (newTime - _shownTime >= 1)
                 {
-                    MinutesUp.OnInteract();
+                    MinutesForward.OnInteract();
                     Debug.LogFormat(@"<The Clock #{0}> Going backwards in minutes...", _moduleId);
                     yield return new WaitUntil(() => newTime - _shownTime < 1);
                     Debug.LogFormat(@"<The Clock #{0}> ... done", _moduleId);
-                    MinutesUp.OnInteractEnded();
+                    MinutesForward.OnInteractEnded();
                 }
             }
             else if (newTime < _shownTime) // We need to go forwards.
             {
                 if (_shownTime - newTime >= 60)
                 {
-                    HoursDown.OnInteract();
+                    HoursBackward.OnInteract();
                     Debug.LogFormat(@"<The Clock #{0}> Going forwards in hours...", _moduleId);
                     yield return new WaitUntil(() => _shownTime - newTime < 60);
                     Debug.LogFormat(@"<The Clock #{0}> ... done", _moduleId);
-                    HoursDown.OnInteractEnded();
+                    HoursBackward.OnInteractEnded();
                     yield return new WaitForSeconds(.25f);
                 }
 
                 if (_shownTime - newTime >= 1)
                 {
-                    MinutesDown.OnInteract();
+                    MinutesBackward.OnInteract();
                     Debug.LogFormat(@"<The Clock #{0}> Going forwards in minutes...", _moduleId);
                     yield return new WaitUntil(() => _shownTime - newTime < 1);
                     Debug.LogFormat(@"<The Clock #{0}> ... done", _moduleId);
-                    MinutesDown.OnInteractEnded();
+                    MinutesBackward.OnInteractEnded();
                 }
             }
 
@@ -501,7 +498,7 @@ public class TheClockModule : MonoBehaviour
 
             var hours = split[0][0] == 'h';
             var forward = split[1][0] == 'f';
-            var btn = forward ? (hours ? HoursUp : MinutesUp) : (hours ? HoursDown : MinutesDown);
+            var btn = forward ? (hours ? HoursForward : MinutesForward) : (hours ? HoursBackward : MinutesBackward);
 
             int amount;
             if (split.Length < 3 || !int.TryParse(split[2], out amount))
@@ -520,9 +517,9 @@ public class TheClockModule : MonoBehaviour
 
             while (amountHours > 0)
             {
-                (forward ? HoursUp : HoursDown).OnInteract();
+                (forward ? HoursForward : HoursBackward).OnInteract();
                 yield return new WaitForSeconds(.05f);
-                (forward ? HoursUp : HoursDown).OnInteractEnded();
+                (forward ? HoursForward : HoursBackward).OnInteractEnded();
                 yield return new WaitForSeconds(.1f);
                 amountHours--;
             }
@@ -540,5 +537,33 @@ public class TheClockModule : MonoBehaviour
 
             Debug.LogFormat(@"<The Clock #{0}> Twitch Plays handler done.", _moduleId);
         }
+    }
+
+    IEnumerator TwitchHandleForcedSolve()
+    {
+        retry:
+        var bombTime = Bomb.GetTime();
+        var isFirstHalf = bombTime > _originalBombTime / 2;
+        var targetTime = (_initialTime + (isFirstHalf ? _addTime : totalMinutes - _addTime)) % totalMinutes;
+
+        MinutesForward.OnInteract();
+        while (_shownTime % 60 != targetTime % 60)
+            yield return true;
+        MinutesForward.OnInteractEnded();
+
+        yield return new WaitForSeconds(.1f);
+
+        HoursForward.OnInteract();
+        while (_shownTime / 60 != targetTime / 60)
+            yield return true;
+        HoursForward.OnInteractEnded();
+
+        if (isFirstHalf != Bomb.GetTime() > _originalBombTime / 2)
+            // Bomb timer passed the mark while we were moving the hands!
+            goto retry;
+
+        Submit.OnInteract();
+        yield return new WaitForSeconds(.1f);
+        Submit.OnInteractEnded();
     }
 }
