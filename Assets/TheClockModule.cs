@@ -70,6 +70,7 @@ public class TheClockModule : MonoBehaviour
     private bool _amPmWhiteOnBlack;
     private bool _secondsHandPresent;
     private float _originalBombTime;
+    private bool _isActivated;
     private bool _isSolved;
 
     // Haha, “handheld”, get it? Hahaha. Seriously, it’s the coroutine that runs while the user holds the selectable that moves a hand.
@@ -87,8 +88,9 @@ public class TheClockModule : MonoBehaviour
         _moduleId = _moduleIdCounter++;
         _isSolved = false;
 
-        _originalBombTime = Bomb.GetTime();
-        Debug.LogFormat("[The Clock #{0}] Initial bomb timer: {1}", _moduleId, _originalBombTime);
+        // Start time
+        _initialTime = _shownTime = Rnd.Range(0, totalMinutes);
+        Debug.LogFormat("[The Clock #{0}] Initial time: {1}", _moduleId, formatTime(_initialTime));
 
         // Decide upon all the variables
         setHandStyle();           // minutes, category 1
@@ -104,11 +106,6 @@ public class TheClockModule : MonoBehaviour
             (((int) _numeralStyle * 4 + (_caseIsGold ? 1 : 0) * 2 + (_handsColorMatchesNumerals ? 0 : 1) + 2) % 12 + 1) * 60 +
             ((int) _handStyle * 20 + _numeralsColor * 4 + (_amPmWhiteOnBlack ? 2 : 0) + (_secondsHandPresent ? 0 : 1) + 11) % 60;
 
-        // Start time
-        _initialTime = _shownTime = Rnd.Range(0, totalMinutes);
-        Debug.LogFormat("[The Clock #{0}] Initial time: {1}", _moduleId, formatTime(_initialTime));
-        LogAnswer();
-
         MinuteHand.transform.localRotation = minuteHandRotation;
         HourHand.transform.localRotation = hourHandRotation;
         AmPm.transform.localRotation = amPmRotation;
@@ -121,6 +118,8 @@ public class TheClockModule : MonoBehaviour
         MinutesBackward.OnInteractEnded = MinutesForward.OnInteractEnded = HoursBackward.OnInteractEnded = HoursForward.OnInteractEnded = btnUp;
         Submit.OnInteract = delegate
         {
+            if (!_isActivated)
+                return false;
             if (_submitHeld != null)
                 StopCoroutine(_submitHeld);
             _submitHeldReset = false;
@@ -129,11 +128,19 @@ public class TheClockModule : MonoBehaviour
         };
         Submit.OnInteractEnded = delegate
         {
-            if (_submitHeld != null)
-                StopCoroutine(_submitHeld);
+            if (_submitHeld == null)
+                return;
             _submitHeld = null;
             if (!_submitHeldReset)
                 submit();
+        };
+
+        Module.OnActivate += delegate
+        {
+            _originalBombTime = Bomb.GetTime();
+            Debug.LogFormat("[The Clock #{0}] Initial bomb timer: {1}", _moduleId, _originalBombTime);
+            LogAnswer();
+            _isActivated = true;
         };
     }
 
